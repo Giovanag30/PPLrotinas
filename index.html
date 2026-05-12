@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Avaliação - PPL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        orange: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        /* Esconde setas do input number */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        
+        .smooth-transition { transition: all 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-orange-500 text-white p-2 rounded-lg">
+                        <i class="fa-solid fa-car-side text-xl"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">Auto<span class="text-orange-500">PPL</span> Dashboard</span>
+                </div>
+                <div>
+                    <button onclick="calculateResults()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md shadow-orange-500/30 smooth-transition flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line"></i> Analisar Desempenho
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Formulário de Notas (Lado Esquerdo) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-1">Avaliação de Rotinas</h2>
+                    <p class="text-sm text-slate-500">Atribua uma nota de 0 a 10 para cada macrorotina da sua loja.</p>
+                </div>
+
+                <div id="form-container" class="space-y-6 max-h-[75vh] overflow-y-auto pr-2 pb-10 custom-scrollbar">
+                    <!-- Os pilares e inputs serão renderizados aqui pelo JS -->
+                </div>
+            </div>
+
+            <!-- Resultados (Lado Direito) -->
+            <div class="lg:col-span-7">
+                <div class="sticky top-24 space-y-6">
+                    
+                    <!-- Resumo das Médias -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-ranking-star text-orange-500"></i> Médias por Pilar
+                        </h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="averages-container">
+                            <!-- Médias renderizadas via JS -->
+                            <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-400">
+                                Aguardando análise...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plano de Ação (Pilar Crítico) -->
+                    <div id="action-plan-container" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden smooth-transition">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                            <div class="bg-red-100 text-red-600 w-12 h-12 rounded-full flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Foco Prioritário: <span id="critical-pillar-name" class="text-red-600"></span></h3>
+                                <p class="text-sm text-slate-500">Este pilar obteve a menor média. Veja o passo a passo para as 3 rotinas mais críticas.</p>
+                            </div>
+                        </div>
+
+                        <div id="routines-action-list" class="space-y-6">
+                            <!-- Rotinas críticas renderizadas via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Placeholder de Estado Inicial -->
+                    <div id="initial-state" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+                        <div class="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-clipboard-check text-4xl text-orange-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-700 mb-2">Pronto para a Avaliação</h3>
+                        <p class="text-slate-500 max-w-md">Preencha as notas no painel ao lado e clique em "Analisar Desempenho" para gerar seu plano de ação focado no que mais importa.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Dados Estruturados Baseados no PPL
+        const data = [
+            {
+                id: "marketing",
+                title: "Marketing",
+                icon: "fa-bullhorn",
+                routines: [
+                    {
+                        name: "Planejamento dos Anúncios, Público Alvo e Canais",
+                        steps: [
+                            "Definir modelos prioritários: Identificar veículos com maior potencial de venda e margem de lucro.",
+                            "Analisar público-alvo: Definir persona do comprador com base em idade, renda e localização.",
+                            "Canais de anúncio: Determinar onde o público-alvo está mais presente (Facebook, Instagram, OLX).",
+                            "Calendário de campanhas: Definir frequência de anúncios pagos e postagens orgânicas.",
+                            "Templates: Desenvolver modelos padronizados de criativos para redes sociais.",
+                            "Testar e otimizar: Analisar métricas (CTR, CPC, conversões) para ajustes contínuos."
+                        ]
+                    },
+                    {
+                        name: "Elaboração e Divulgação de Vídeos e Provas Sociais",
+                        steps: [
+                            "Identificar clientes: Criar banco de clientes satisfeitos e oferecer incentivo simbólico pela participação.",
+                            "Roteiro curto: Estruturar modelo simples (busca, experiência, atendimento) com frases diretas.",
+                            "Gravação: Garantir boa iluminação, microfone próximo e testar diferentes ângulos.",
+                            "Legendas e CTA: Adicionar legendas automáticas e textos chamativos.",
+                            "Publicação: Testar horários de maior engajamento e manter cronograma consistente.",
+                            "Reciclagem: Repostar vídeos de boa performance em diferentes formatos."
+                        ]
+                    },
+                    {
+                        name: "Planejamento das Campanhas de Tráfego Pago",
+                        steps: [
+                            "Objetivos claros: Definir foco (leads, visitas, conversão) e segmentar pelo funil de vendas.",
+                            "Público-alvo ideal: Usar dados anteriores para públicos semelhantes (lookalike) e segmentar.",
+                            "Criativos persuasivos: Desenvolver mídias destacando veículos e usando gatilhos de urgência.",
+                            "Textos estratégicos: Criar títulos impactantes com CTAs objetivas ('Chame no WhatsApp').",
+                            "Testes A/B: Criar variações de anúncios, testar públicos e ajustar com base em métricas."
+                        ]
+                    },
+                    {
+                        name: "Gerenciamento da Performance dos Anúncios",
+                        steps: [
+                            "Definir KPIs: Estabelecer CTR, CPC, CPL e ROAS, acompanhando-os em dashboards.",
+                            "Taxa de conversão: Identificar campanhas rentáveis e ajustar direcionamento das fracas.",
+                            "Qualidade dos leads: Filtrar leads e analisar padrões de quem fecha negócio.",
+                            "Comparar plataformas: Avaliar retorno entre Meta, Google, OLX e Webmotors, redistribuindo orçamento.",
+                            "Otimização: Aumentar orçamento dos bons e pausar anúncios ruins em tempo real."
+                        ]
+                    },
+                    {
+                        name: "Anúncios de Compra e Reposição de Estoque",
+                        steps: [
+                            "Objetivos e Público: Focar em proprietários particulares buscando venda via redes sociais.",
+                            "Criativos e Copies: Destacar pagamento rápido à vista e gerar segurança via prova social.",
+                            "Critérios de avaliação: Criar formulário simples para triagem (marca, ano, modelo).",
+                            "Monitoramento: Acompanhar custo por lead e ajustar segmentação para reposição eficiente."
+                        ]
+                    },
+                    {
+                        name: "Funil de Vendas via Lives no Instagram",
+                        steps: [
+                            "Objetivo e Carros: Selecionar modelos de alto custo-benefício e criar roteiro com preços.",
+                            "Equipe: Designar apresentador, moderador de comentários e suporte técnico.",
+                            "Estrutura e Divulgação: Garantir boa luz/áudio e divulgar com contagem regressiva antecipada.",
+                            "Gatilhos e Fechamento: Ofertas válidas só na live, QR Code na tela e vendedores a postos.",
+                            "Follow-up: Entrar em contato com quem interagiu nas primeiras 24 horas."
+                        ]
+                    },
+                    {
+                        name: "Definição das Ações e Funis de Vendas do Mês",
+                        steps: [
+                            "Analisar vendas: Revisar mês anterior, identificar gargalos e canais de sucesso.",
+                            "Definir metas: Estabelecer faturamento e volume, desmembrando por vendedor.",
+                            "Calendário e Segmentação: Planejar feirões, sazonalidades e segmentar o público alvo.",
+                            "Alinhamento do time: Apresentar metas, treinar vendedores e monitorar em tempo real."
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "comercial",
+                title: "Comercial",
+                icon: "fa-handshake",
+                routines: [
+                    {
+                        name: "Planejamento Comercial de Metas x Resultados",
+                        steps: [
+                            "Analisar histórico: Levantar padrões de vendas e definir metas realistas baseadas em dados.",
+                            "Desmembrar metas: Dividir por vendedor e canal (Instagram, loja física, portais).",
+                            "Acompanhamento: Usar dashboard em tempo real e fazer reuniões semanais para ajustes.",
+                            "Gargalos e Motivação: Desenvolver respostas para objeções padrão e criar premiações para a equipe."
+                        ]
+                    },
+                    {
+                        name: "Fluxo de Ligações Diárias",
+                        steps: [
+                            "Metas diárias: Estabelecer número mínimo de contatos por vendedor.",
+                            "Segmentação: Separar leads em frios, mornos e quentes, com roteiros diferentes para cada.",
+                            "Melhor horário: Programar contatos em momentos de alta resposta (manhã/fim de tarde).",
+                            "Automação e CRM: Registrar tudo, automatizar follow-ups e avaliar conversão nas reuniões diárias."
+                        ]
+                    },
+                    {
+                        name: "Rotinas de Pré Vendas (SDR)",
+                        steps: [
+                            "Qualificação: Usar lead scoring para analisar nível de interesse e priorizar contatos quentes.",
+                            "Distribuição: Evitar sobrecarga distribuindo leads de forma equilibrada no CRM.",
+                            "Primeiro contato: Roteiro estruturado (saudação, qualificação e agendamento).",
+                            "Follow-ups: Cadência ativa sem ser invasivo e transição fluida do lead qualificado para o fechador."
+                        ]
+                    },
+                    {
+                        name: "Rotinas de Venda Presencial",
+                        steps: [
+                            "Preparação e Recepção: Revisar preferências do lead, loja organizada e atendimento consultivo.",
+                            "Apresentação: Destacar diferenciais alinhados ao perfil e usar certificados de qualidade.",
+                            "Test-drive: Convidar ativamente, explicar funções no trajeto e validar interesse no final.",
+                            "Negociação e Entrega: Foco em benefícios, senso de urgência exclusivo e entrega celebrativa."
+                        ]
+                    },
+                    {
+                        name: "Rotinas de Vendas Online",
+                        steps: [
+                            "Atualização: Garantir preços corretos e descrições ricas em todos os portais.",
+                            "Atração e Resposta: Usar vídeos, responder em < 5 minutos via automação ou equipe focada.",
+                            "Chamadas de Vídeo: Oferecer tour virtual pelo carro para gerar proximidade e confiança.",
+                            "Fechamento Digital: Ofertar envio online de propostas, contratos digitais e entrega em domicílio."
+                        ]
+                    },
+                    {
+                        name: "Rotinas de Pré Compra",
+                        steps: [
+                            "Mapeamento: Analisar giro de estoque para saber exatamente que tipo de carro buscar.",
+                            "Captação: Campanhas focadas em terceiros e clientes antigos aptos a trocar de carro.",
+                            "Avaliação e Precificação: Vistoria rigorosa (mecânica/docs) e compra baseada em margem de revenda viável.",
+                            "Preparação: Reparos e higienização acelerados para giro rápido de venda."
+                        ]
+                    },
+                    {
+                        name: "Gestão da Base de Veículos Avaliados",
+                        steps: [
+                            "Registro: Cadastrar todo carro avaliado num CRM, criando histórico para o futuro.",
+                            "Acompanhamento: Atualizar status e definir regra para reabordar clientes que não venderam na 1ª oferta.",
+                            "Priorização: Focar as compras nos modelos avaliados de altíssimo giro de mercado.",
+                            "Campanhas: Reativar donos antigos com propostas mais agressivas de aquisição."
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "operacional",
+                title: "Operacional",
+                icon: "fa-gears",
+                routines: [
+                    {
+                        name: "Preparação dos Veículos",
+                        steps: [
+                            "Inspeção e Mecânica: Checklist padronizado, revisão de fluidos e troca de itens em fim de vida.",
+                            "Higienização: Lavagem externa e interna profundas, desinfecção e revitalização.",
+                            "Testes finais: Rodar com o carro para atestar silêncio e funcionamento eletrônico.",
+                            "Visual: Exposição em ponto estratégico da loja com precificação e benefícios bem visíveis."
+                        ]
+                    },
+                    {
+                        name: "Rotinas de Pós Vendas",
+                        steps: [
+                            "Follow-up: Ligar em 48h para atestar satisfação e tirar dúvidas do novo motorista.",
+                            "Suporte e NPS: Ter canal exclusivo rápido (WhatsApp) e rodar pesquisa NPS rotineiramente.",
+                            "Garantias: Orientação documental blindada e resolução instantânea para não virar queixa pública.",
+                            "Comunidade: Ofertar serviços extras (seguros, lavagem) e mandar mensagens em datas festivas."
+                        ]
+                    },
+                    {
+                        name: "Rotinas de Orçamentos e Prazos",
+                        steps: [
+                            "Padronização: Orçamento em PDF claro, validado por um gestor para garantir rentabilidade.",
+                            "Velocidade e CRM: Responder clientes em até 24h e rastrear orçamentos no funil (enviado, aprovado).",
+                            "Follow-up: Régua de contato de 3 fases usando benefícios e prova social para converter.",
+                            "Entregas: Atualizar o cliente sobre o andamento e checar tudo com rigor antes de devolver o bem."
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "adm",
+                title: "ADM / Financeiro",
+                icon: "fa-calculator",
+                routines: [
+                    {
+                        name: "Rotinas do RENAVE",
+                        steps: [
+                            "Cadastro e Treino: Token ativo na Receita/Detran e equipe orientada a lançamentos precisos.",
+                            "Entradas e Saídas: Registrar compras instantaneamente e emitir NF-e; baixar ao transferir a venda.",
+                            "Conformidade: Regularizar pendências fiscais do carro antes de anunciar.",
+                            "Auditoria: Bater o estoque virtual oficial do governo com o físico estacionado na loja regularmente."
+                        ]
+                    },
+                    {
+                        name: "Tributos Fiscais / Pagamentos",
+                        steps: [
+                            "Calendário: Planilha de impostos (ICMS, Simples, IPVAs) rodando com alertas no caixa financeiro.",
+                            "Auditoria contábil: Validar as guias e NFs mensalmente junto ao contador para evitar pesados passivos.",
+                            "Reservas: Blindar dinheiro do fluxo especificamente para boletas governamentais e não sofrer juros.",
+                            "Regimes: Simular anualmente se a loja tem mais vantagens em lucro real ou presumido/simples."
+                        ]
+                    },
+                    {
+                        name: "Financiamento e Serviços (F&I)",
+                        steps: [
+                            "Score e Simulação: Tirar dados limpos do cliente e montar cenários claros mostrando as parcelas reais.",
+                            "Aprovação: Subir dados ao gerente do banco rapidamente e brigar por aprovações (negociando avalistas).",
+                            "Cross-sell: Vender seguros ou rastreadores embutidos para aumentar o lucro líquido daquela transação.",
+                            "Contratos e Repasse: Assinatura cravada, e conferência imediata de quando o valor caiu na conta da loja."
+                        ]
+                    },
+                    {
+                        name: "Análise de Custos e Margens",
+                        steps: [
+                            "Margem Real do Carro: Calcular Compra - Reformas - Mkt - Impostos - Comissão = Lucro líquido verdadeiro.",
+                            "Break-Even: Conhecer exatamente em que dia do mês a loja pagou os boletos e começou a ter lucro livre.",
+                            "Cortes Analíticos: Eliminar mensalmente assinaturas de sistemas que o time não usa e fornecedores caros.",
+                            "Previsão de Risco: Calcular como a contratação de um vendedor a mais impacta na corda do break-even."
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // Variável global para guardar o estado das notas
+        const scores = {};
+
+        // Inicializar a Interface
+        document.addEventListener('DOMContentLoaded', () => {
+            const formContainer = document.getElementById('form-container');
+            
+            data.forEach((pillar) => {
+                // Iniciar objeto de notas
+                scores[pillar.id] = {};
+
+                // Criar Card do Pilar
+                const pillarCard = document.createElement('div');
+                pillarCard.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden';
+                
+                // Header do Pilar
+                const pillarHeader = document.createElement('div');
+                pillarHeader.className = 'bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3';
+                pillarHeader.innerHTML = `
+                    <div class="bg-orange-100 text-orange-600 w-10 h-10 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid ${pillar.icon}"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">${pillar.title}</h3>
+                `;
+                pillarCard.appendChild(pillarHeader);
+
+                // Rotinas do Pilar
+                const routinesDiv = document.createElement('div');
+                routinesDiv.className = 'divide-y divide-slate-100';
+                
+                pillar.routines.forEach((routine, index) => {
+                    const rId = `${pillar.id}_${index}`;
+                    scores[pillar.id][rId] = { name: routine.name, score: 0, steps: routine.steps };
+
+                    const row = document.createElement('div');
+                    row.className = 'px-6 py-4 flex items-center justify-between hover:bg-slate-50 smooth-transition';
+                    
+                    row.innerHTML = `
+                        <div class="pr-4 flex-1">
+                            <label for="${rId}" class="block text-sm font-semibold text-slate-700 leading-tight mb-1 cursor-pointer">
+                                ${routine.name}
+                            </label>
+                        </div>
+                        <div class="w-24">
+                            <div class="relative">
+                                <input type="number" id="${rId}" min="0" max="10" placeholder="0"
+                                    onchange="updateScore('${pillar.id}', '${rId}', this.value)"
+                                    class="block w-full rounded-lg border-slate-300 py-2 px-3 text-center text-slate-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-lg font-bold border bg-white outline-none transition-all">
+                            </div>
+                        </div>
+                    `;
+                    routinesDiv.appendChild(row);
+                });
+
+                pillarCard.appendChild(routinesDiv);
+                formContainer.appendChild(pillarCard);
+            });
+        });
+
+        // Atualizar objeto de notas ao digitar
+        function updateScore(pillarId, routineId, value) {
+            let num = parseFloat(value);
+            if (isNaN(num) || num < 0) num = 0;
+            if (num > 10) num = 10;
+            
+            // Forçar visual update se saiu do limite
+            document.getElementById(routineId).value = num;
+            scores[pillarId][routineId].score = num;
+        }
+
+        // Calcular e exibir resultados
+        function calculateResults() {
+            const averages = [];
+            let lowestPillar = null;
+            let lowestAvg = Infinity;
+
+            // 1. Calcular Média de Cada Pilar
+            const averagesContainer = document.getElementById('averages-container');
+            averagesContainer.innerHTML = '';
+
+            data.forEach(pillar => {
+                let sum = 0;
+                let count = 0;
+                const routinesArray = [];
+
+                for (const key in scores[pillar.id]) {
+                    sum += scores[pillar.id][key].score;
+                    count++;
+                    routinesArray.push(scores[pillar.id][key]);
+                }
+
+                const avg = count > 0 ? (sum / count).toFixed(1) : 0;
+                
+                // Armazenar para descobrir o menor
+                if (avg < lowestAvg) {
+                    lowestAvg = avg;
+                    lowestPillar = {
+                        id: pillar.id,
+                        title: pillar.title,
+                        routines: routinesArray
+                    };
+                }
+
+                // Renderizar card de média
+                averagesContainer.innerHTML += `
+                    <div class="text-center p-4 rounded-xl border ${avg < 5 ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-slate-100'} smooth-transition">
+                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">${pillar.title}</div>
+                        <div class="text-3xl font-black ${avg < 5 ? 'text-red-600' : 'text-slate-800'}">${avg}</div>
+                    </div>
+                `;
+            });
+
+            // 2. Ocultar Placeholder e Mostrar Ação
+            document.getElementById('initial-state').classList.add('hidden');
+            const actionPlan = document.getElementById('action-plan-container');
+            actionPlan.classList.remove('hidden');
+
+            // 3. Processar o Pilar Crítico (Pior Média)
+            document.getElementById('critical-pillar-name').innerText = lowestPillar.title;
+
+            // Ordenar rotinas do pior pilar pela nota (Crescente)
+            lowestPillar.routines.sort((a, b) => a.score - b.score);
+            
+            // Pegar as 3 piores
+            const worst3 = lowestPillar.routines.slice(0, 3);
+
+            // Renderizar as rotinas crírticas
+            const actionList = document.getElementById('routines-action-list');
+            actionList.innerHTML = '';
+
+            worst3.forEach((routine, index) => {
+                // Criar lista de passos
+                const stepsHTML = routine.steps.map(step => `
+                    <li class="flex items-start gap-2 text-sm text-slate-600 mb-2">
+                        <i class="fa-solid fa-circle-check text-orange-500 mt-1 flex-shrink-0 text-xs"></i>
+                        <span>${step}</span>
+                    </li>
+                `).join('');
+
+                actionList.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="font-bold text-slate-800 pr-4 leading-tight">${routine.name}</h4>
+                            <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md border border-red-200 whitespace-nowrap">Nota: ${routine.score}</span>
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-t border-slate-200">
+                            <h5 class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-3">Passo a passo para melhoria:</h5>
+                            <ul class="ml-1">
+                                ${stepsHTML}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Rolagem suave até os resultados no mobile
+            if (window.innerWidth < 1024) {
+                actionPlan.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+</body>
+</html>
