@@ -115,6 +115,19 @@
                         </div>
                     </div>
 
+                    <!-- Resumo para Copiar -->
+                    <div id="summary-container" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden smooth-transition">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-file-lines text-orange-500"></i> Resumo para Copiar
+                            </h3>
+                            <button onclick="copySummary()" id="copy-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-1.5 px-4 rounded-lg text-sm transition-colors flex items-center gap-2">
+                                <i class="fa-regular fa-copy"></i> Copiar Texto
+                            </button>
+                        </div>
+                        <textarea id="summary-text" class="w-full h-48 p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-orange-500" readonly></textarea>
+                    </div>
+
                     <!-- Placeholder de Estado Inicial -->
                     <div id="initial-state" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
                         <div class="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-4">
@@ -592,11 +605,65 @@
                     </div>
                 `;
             });
+
+            // 4. Gerar Texto de Resumo para Copiar
+            let summaryText = `📊 RESUMO DE DESEMPENHO - AUTOPPL 📊\n\n`;
+            summaryText += `--- MÉDIAS POR PILAR ---\n`;
+            chartLabels.forEach((label, idx) => {
+                summaryText += `${label}: ${chartData[idx].toFixed(1)}\n`;
+            });
             
+            summaryText += `\n⚠️ FOCO PRIORITÁRIO: ${lowestPillar.title} (Média: ${lowestAvg.toFixed(1)})\n\n`;
+            summaryText += `--- PLANO DE AÇÃO (3 Piores Rotinas) ---\n\n`;
+            
+            worst3.forEach((routine, index) => {
+                summaryText += `${index + 1}. ${routine.name} (Nota: ${routine.score})\n`;
+                summaryText += `Passo a passo para melhoria:\n`;
+                routine.steps.forEach(step => {
+                    summaryText += `- ${step}\n`;
+                });
+                summaryText += `\n`;
+            });
+
+            document.getElementById('summary-text').value = summaryText;
+            document.getElementById('summary-container').classList.remove('hidden');
+
             // Rolagem suave até os resultados no mobile
             if (window.innerWidth < 1024) {
                 actionPlan.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+        }
+
+        // Função para copiar o texto para a área de transferência
+        function copySummary() {
+            const summaryTextArea = document.getElementById('summary-text');
+            summaryTextArea.select();
+            summaryTextArea.setSelectionRange(0, 99999); // Para dispositivos móveis
+            
+            try {
+                // Utilizando document.execCommand conforme as instruções de compatibilidade de iframe
+                document.execCommand('copy');
+                
+                const btn = document.getElementById('copy-btn');
+                const originalHTML = '<i class="fa-regular fa-copy"></i> Copiar Texto';
+                
+                // Feedback visual de sucesso
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+                btn.classList.remove('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+                btn.classList.add('bg-green-100', 'text-green-700');
+                
+                // Restaurar o botão original após 2 segundos
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-green-100', 'text-green-700');
+                    btn.classList.add('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+                }, 2000);
+            } catch (err) {
+                console.error('Falha ao copiar o texto', err);
+            }
+            
+            // Limpa a seleção do textarea para ficar esteticamente melhor
+            window.getSelection().removeAllRanges();
         }
     </script>
 </body>
