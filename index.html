@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Avaliação - PPL</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -91,6 +92,9 @@
                             <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-400">
                                 Aguardando análise...
                             </div>
+                        </div>
+                        <div class="mt-8 relative h-60 w-full hidden smooth-transition" id="chart-container">
+                            <canvas id="averagesChart"></canvas>
                         </div>
                     </div>
 
@@ -357,6 +361,7 @@
 
         // Variável global para guardar o estado das notas
         const scores = {};
+        let averagesChart = null; // Instância do gráfico
 
         // Inicializar a Interface
         document.addEventListener('DOMContentLoaded', () => {
@@ -431,6 +436,10 @@
             let lowestPillar = null;
             let lowestAvg = Infinity;
 
+            const chartLabels = [];
+            const chartData = [];
+            const chartColors = [];
+
             // 1. Calcular Média de Cada Pilar
             const averagesContainer = document.getElementById('averages-container');
             averagesContainer.innerHTML = '';
@@ -447,10 +456,16 @@
                 }
 
                 const avg = count > 0 ? (sum / count).toFixed(1) : 0;
+                const avgNum = parseFloat(avg);
+                
+                chartLabels.push(pillar.title);
+                chartData.push(avgNum);
+                // Laranja se for bom, Vermelho se for alerta
+                chartColors.push(avgNum < 5 ? '#ef4444' : '#f97316');
                 
                 // Armazenar para descobrir o menor
-                if (avg < lowestAvg) {
-                    lowestAvg = avg;
+                if (avgNum < lowestAvg) {
+                    lowestAvg = avgNum;
                     lowestPillar = {
                         id: pillar.id,
                         title: pillar.title,
@@ -460,9 +475,9 @@
 
                 // Renderizar card de média
                 averagesContainer.innerHTML += `
-                    <div class="text-center p-4 rounded-xl border ${avg < 5 ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-slate-100'} smooth-transition">
+                    <div class="text-center p-4 rounded-xl border ${avgNum < 5 ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-slate-100'} smooth-transition">
                         <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">${pillar.title}</div>
-                        <div class="text-3xl font-black ${avg < 5 ? 'text-red-600' : 'text-slate-800'}">${avg}</div>
+                        <div class="text-3xl font-black ${avgNum < 5 ? 'text-red-600' : 'text-slate-800'}">${avg}</div>
                     </div>
                 `;
             });
@@ -471,6 +486,72 @@
             document.getElementById('initial-state').classList.add('hidden');
             const actionPlan = document.getElementById('action-plan-container');
             actionPlan.classList.remove('hidden');
+
+            // Exibir o Gráfico de Barras
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.classList.remove('hidden');
+
+            const ctx = document.getElementById('averagesChart').getContext('2d');
+            
+            // Destrói o gráfico anterior caso já exista para evitar sobreposição
+            if (averagesChart) {
+                averagesChart.destroy();
+            }
+            
+            // Inicializa novo gráfico Chart.js
+            averagesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Média de Desempenho',
+                        data: chartData,
+                        backgroundColor: chartColors,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        maxBarThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            grid: {
+                                color: '#f1f5f9',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                stepSize: 2
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 12,
+                            titleFont: { family: 'Inter', size: 14 },
+                            bodyFont: { family: 'Inter', size: 14 },
+                            callbacks: {
+                                label: function(context) {
+                                    return ' Média: ' + context.parsed.y.toFixed(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
             // 3. Processar o Pilar Crítico (Pior Média)
             document.getElementById('critical-pillar-name').innerText = lowestPillar.title;
