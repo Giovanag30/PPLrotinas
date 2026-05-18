@@ -71,7 +71,16 @@
                     <p class="text-sm text-slate-500">Atribua uma nota de 0 a 10 para cada macrorotina da sua loja.</p>
                 </div>
 
-                <div id="form-container" class="space-y-6 max-h-[75vh] overflow-y-auto pr-2 pb-10 custom-scrollbar">
+                <!-- Campo Nome da Loja -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <label for="store-name" class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fa-solid fa-store text-orange-500 mr-1"></i> Nome da Loja
+                    </label>
+                    <input type="text" id="store-name" placeholder="Ex: Auto Motors Seminovos" 
+                        class="block w-full rounded-lg border-slate-300 py-2.5 px-3 text-slate-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm border outline-none transition-all">
+                </div>
+
+                <div id="form-container" class="space-y-6 max-h-[65vh] overflow-y-auto pr-2 pb-10 custom-scrollbar">
                     <!-- Os pilares e inputs serão renderizados aqui pelo JS -->
                 </div>
             </div>
@@ -467,6 +476,10 @@
             let totalCurrSum = 0;
             let totalCount = 0;
 
+            // Coletar Nome da Loja
+            let storeName = document.getElementById('store-name').value.trim();
+            let storeTitle = storeName ? ` - ${storeName.toUpperCase()}` : '';
+
             // 1. Calcular Média de Cada Pilar
             const averagesContainer = document.getElementById('averages-container');
             averagesContainer.innerHTML = '';
@@ -663,7 +676,7 @@
                 totalDiffStr = `${d > 0 ? '+' : ''}${d.toFixed(1)}%`;
             }
 
-            let summaryText = `📊 RESUMO DE DESEMPENHO - AUTOPPL 📊\n\n`;
+            let summaryText = `📊 RESUMO DE DESEMPENHO - AUTOPPL${storeTitle} 📊\n\n`;
             summaryText += `📈 EVOLUÇÃO GERAL: Média Atual ${totalAvgCurr.toFixed(1)} (Antes: ${totalAvgPrev.toFixed(1)}) | Crescimento: ${totalDiffStr}\n\n`;
             
             summaryText += `--- MÉDIAS POR PILAR ---\n`;
